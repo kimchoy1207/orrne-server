@@ -1,0 +1,18 @@
+# 환경 변수 파일 (민감 정보)
+.env
+
+# 편집기 임시 파일
+*.swp
+
+# Python bytecode 파일
+*.pyc
+__pycache__/
+
+# 로그 파일 및 디렉토리
+logs/
+static/preview/
+
+# 기타 불필요한 파일 또는 폴더
+.DS_Store
+
+
