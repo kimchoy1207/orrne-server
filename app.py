@@ -90,6 +90,10 @@ def admin_logs():
 @app.route("/admin/rollback", methods=["POST"])
 def rollback():
     print("CWD:", os.getcwd())
+
+    # rollback 함수 맨 위에 추가
+    os.chdir(os.path.expanduser("~/orrne-server-clean"))
+    
     logging.debug("Starting rollback request")
     auth_header = request.headers.get("Authorization")
     if not auth_header or "Bearer admin-secret-token-here" not in auth_header:
