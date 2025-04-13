@@ -1,6 +1,12 @@
 import os
 import subprocess
 from datetime import datetime
+from bs4 import BeautifulSoup
+
+
+def normalize_html(html):
+    return BeautifulSoup(html, "html.parser").prettify()
+
 
 def git_commit_and_push(file_path, html_code, commit_message="auto: update index.html"):
     repo_dir = os.path.expanduser("~/orrne-server-clean")
@@ -14,14 +20,15 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
         # 2.index.html의 기존 내용과 새 내용 비교
         if os.path.exists(abs_path):
             with open(abs_path, "r") as f:
-                existing = f.read().strip()
-            if existing == html_code.strip():
-                # 변경된 내용 원상복구 (작업 디렉토리 깨끗하게 유지)
-                subprocess.run(["git", "restore", file_path], check=True)
+                existing = f.read()
+    
+            if normalize_html(existing) == normalize_html(html_code):
+            # 작업 디렉토리 깨끗하게 유지 (필요하면 restore 실행)
+                subprocess.run(["git", "restore", file_path], check=False)
                 return {
                     "success": False,
                     "skipped": True,
-                    "message": "index.html 내용이 동일하여 커밋 생략 및 변경사항 복원 완료",
+                    "message": "HTML 구조가 동일하여 커밋 생략",
                     "timestamp": commit_time
                 }
 
