@@ -30,8 +30,12 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
         if os.path.exists(abs_path):
             with open(abs_path, "r") as f:
                 existing = f.read()
-    
-            if normalize_html(existing) == normalize_html(html_code):
+            
+            old_structure, old_text = normalize_html(existing)
+            new_structure, new_text = normalize_html(html_code)
+
+
+            if old_structure == new_structure and old_text == new_text:
             # 작업 디렉토리 깨끗하게 유지 (필요하면 restore 실행)
                 subprocess.run(["git", "restore", file_path], check=False)
                 return {
