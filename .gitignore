@@ -16,3 +16,4 @@ static/preview/
 .DS_Store
 
 
+flask.log
