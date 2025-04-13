@@ -8,7 +8,7 @@ import json
 import subprocess
 import logging
 
- logging.basicConfig(
+logging.basicConfig(
      level=logging.DEBUG,
      format='%(asctime)s %(levelname)s: %(message)s',
      handlers=[
@@ -211,5 +211,5 @@ def rollback():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=5000, debug = True)
 
