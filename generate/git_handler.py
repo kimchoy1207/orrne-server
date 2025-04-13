@@ -5,7 +5,16 @@ from bs4 import BeautifulSoup
 
 
 def normalize_html(html):
-    return BeautifulSoup(html, "html.parser").prettify()
+    soup = BeautifulSoup(html, "html.parser")
+
+    # 구조를 문자열로 표현 (줄바꿈, 들여쓰기 무시)
+    structure = soup.prettify()
+
+    # 텍스트만 따로 추출 (본문 차이 감지)
+    text_content = soup.get_text(separator=' ', strip=True)
+
+    return structure.strip(), text_content.strip()
+
 
 
 def git_commit_and_push(file_path, html_code, commit_message="auto: update index.html"):
