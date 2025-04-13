@@ -45,6 +45,7 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
 
             if old_structure == new_structure and old_text == new_text:
             # 작업 디렉토리 깨끗하게 유지 (필요하면 restore 실행)
+                print("[SKIP COMMIT] 구조 및 텍스트가 동일하여 생략됨")
                 subprocess.run(["git", "restore", file_path], check=False)
                 return {
                     "success": False,
