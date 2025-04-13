@@ -18,3 +18,4 @@ static/preview/
 
 flask.log
 flask.log
+generate/__pycache__/*
