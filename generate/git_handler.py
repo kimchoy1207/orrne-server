@@ -8,7 +8,7 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
     abs_path = os.path.join(repo_dir, file_path)
 
     try:
-        # Git 저장소로 이동
+        # 1.Git 저장소로 이동
         os.chdir(repo_dir)
 
 
@@ -32,10 +32,10 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
             f.write(html_code)
 
 
-        # 5. 변경 사항 있는 경우 Staging Area에 추가
+        # 4. 변경 사항 있는 경우 Staging Area에 추가
         subprocess.run(["git", "add", file_path], check=True, capture_output=True, text=True)
 
-        # 6. 변경 사항 확인
+        # 5. 변경 사항 확인
         diff_result = subprocess.run(
             ["git", "diff", "--cached", "--quiet", file_path],
             capture_output=True,
@@ -49,17 +49,17 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
                 "timestamp": commit_time
             }
 
-        # 7. 커밋
+        # 6. 커밋
         subprocess.run(["git", "commit", "-m", commit_message], check=True, capture_output=True, text=True)
 
-        # 8. Push
+        # 7. Push
         push_result = subprocess.run(
             ["git", "push", "origin", "main"],
             capture_output=True,
             text=True
         )
 
-        # "Everything up-to-date"도 정상 처리
+        # 8. "Everything up-to-date"도 정상 처리
         if "Everything up-to-date" in (push_result.stdout or ""):
             return {
                 "success": True,
@@ -67,7 +67,7 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
                 "timestamp": commit_time
             }
 
-        # Push 실패 시 에러 처리
+        # 9. Push 실패 시 에러 처리
         if push_result.returncode != 0:
             return {
                 "success": False,
@@ -78,7 +78,7 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
                 "timestamp": commit_time
             }
 
-        # 9. Commit ID 추출
+        # 10. Commit ID 추출
         result = subprocess.run(
             ["git", "rev-parse", "HEAD"],
             capture_output=True,
@@ -86,7 +86,7 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
         )
         commit_hash = result.stdout.strip()
 
-        # 10. 프리뷰 저장
+        # 11. 프리뷰 저장
         preview_path = os.path.join("static", "preview", f"{commit_hash}.html")
         os.makedirs(os.path.dirname(preview_path), exist_ok=True)
         with open(preview_path, "w") as dst:
@@ -99,7 +99,7 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
         }
 
     except subprocess.CalledProcessError as e:
-        # 예외 발생 시 stdout/stderr 수집
+        #  예외 발생 시 stdout/stderr 수집
         stdout = e.stdout if isinstance(e.stdout, str) else e.stdout.decode("utf-8") if e.stdout else ""
         stderr = e.stderr if isinstance(e.stderr, str) else e.stderr.decode("utf-8") if e.stderr else ""
 
