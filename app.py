@@ -87,29 +87,31 @@ def admin_logs():
         return jsonify({"error": str(e)}), 500
 
 
+
+
 @app.route("/admin/rollback", methods=["POST"])
 def rollback():
-    print("CWD:", os.getcwd())
-
-    # rollback 함수 맨 위에 추가
-    os.chdir(os.path.expanduser("~/orrne-server-clean"))
-    
-    logging.debug("Starting rollback request")
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or "Bearer admin-secret-token-here" not in auth_header:
-        return jsonify({"error": "Unauthorized"}), 401
-
     try:
-        data = request.get_json() or {}
-        commit_id = data.get("commit_id")
+        # 1. Git 작업 디렉토리로 강제 이동
+        repo_dir = os.path.expanduser("~/orrne-server-clean")
+        os.chdir(repo_dir)
+        logging.debug(f"[rollback] Changed working directory to: {repo_dir}")
 
-        # 커밋 로그 불러오기
+        # 2. 인증 검사
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or "Bearer admin-secret-token-here" not in auth_header:
+            return jsonify({"error": "Unauthorized"}), 401
+
+        # 3. 요청 데이터 및 rollback 대상 커밋 확인
+        data = request.get_json() or {}
+        requested_commit_id = data.get("commit_id")
+
+        # 4. 커밋 로그 불러오기
         with open("logs/commits.json", "r", encoding="utf-8") as f:
             commits = json.load(f)
 
-        # 롤백 커밋 결정
-        if commit_id:
-            rollback_target = next((c for c in commits if c["commit_id"] == commit_id), None)
+        if requested_commit_id:
+            rollback_target = next((c for c in commits if c["commit_id"] == requested_commit_id), None)
             if not rollback_target:
                 return jsonify({"error": "Commit ID not found"}), 404
         else:
@@ -118,43 +120,27 @@ def rollback():
             rollback_target = commits[-2]
 
         commit_id = rollback_target["commit_id"]
+        logging.info(f"[rollback] Targeting commit: {commit_id}")
 
-        # 변경사항 저장 (필수)
-        stash_result = subprocess.run(["git", "stash", "--include-untracked"], capture_output=True, text=True)
-        if stash_result.returncode != 0:
-            return jsonify({
-                "status": "error",
-                "message": "Git stash failed",
-                "details": {
-                    "stdout": stash_result.stdout,
-                    "stderr": stash_result.stderr
-                }
-            }), 500
+        # 5. 작업 상태 stash → reset 으로 안전하게 롤백 전 상태 초기화
+        subprocess.run(["git", "stash", "--include-untracked"], check=False, capture_output=True, text=True)
+        subprocess.run(["git", "fetch", "origin"], check=True)
+        subprocess.run(["git", "reset", "--hard", "origin/main"], check=True)
 
-        # 최신 상태 동기화
-        pull_result = subprocess.run(["git", "pull", "--rebase", "origin", "main"], capture_output=True, text=True)
-        if pull_result.returncode != 0:
-            return jsonify({
-                "status": "error",
-                "message": "Git pull failed",
-                "details": {
-                    "stdout": pull_result.stdout,
-                    "stderr": pull_result.stderr
-                }
-            }), 500
-
-        # HTML 파일 복원
+        # 6. Git에서 index.html 내용 추출
         restored_html = subprocess.check_output(
             ["git", "show", f"{commit_id}:index.html"],
             stderr=subprocess.STDOUT
         ).decode("utf-8")
 
-        with open("index.html", "w") as f:
+        # 7. index.html 덮어쓰기
+        with open("index.html", "w", encoding="utf-8") as f:
             f.write(restored_html)
 
-        # 커밋 + 푸시
+        # 8. 자동 커밋 & 푸시
         result = git_commit_and_push("index.html", restored_html, commit_message=f"Rollback to {commit_id}")
 
+        # 9. 결과 처리
         if result.get("success"):
             log_commit(
                 f"[Rollback] to {commit_id}",
@@ -167,8 +153,10 @@ def rollback():
                 "rolled_back_to": commit_id,
                 "new_commit_id": result["commit_id"]
             })
+
         elif result.get("skipped"):
             return jsonify({"status": "skipped", "message": "No changes to rollback"})
+
         else:
             return jsonify({
                 "status": "error",
@@ -176,7 +164,8 @@ def rollback():
                 "details": {
                     "error": result.get("error", "No specific error provided"),
                     "stdout": result.get("stdout", ""),
-                    "stderr": result.get("stderr", "")
+                    "stderr": result.get("stderr", ""),
+                    "exit_code": result.get("details", "No exit code")
                 }
             }), 500
 
