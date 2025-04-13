@@ -132,8 +132,9 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
 
     except subprocess.CalledProcessError as e:
         # 예외 발생 시 stdout/stderr 수집
-        stdout = e.stdout.decode("utf-8") if isinstance(e.stdout, bytes) else e.stdout
-        stderr = e.stderr.decode("utf-8") if isinstance(e.stderr, bytes) else e.stderr
+        stdout = e.stdout if isinstance(e.stdout, str) else e.stdout.decode("utf-8") if e.stdout else ""
+        stderr = e.stderr if isinstance(e.stderr, str) else e.stderr.decode("utf-8") if e.stderr else ""
+
         return {
             "success": False,
             "error": str(e),
