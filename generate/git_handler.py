@@ -11,8 +11,20 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
         # 1.Git 저장소로 이동
         os.chdir(repo_dir)
 
+        # 2.index.html의 기존 내용과 새 내용 비교
+        if os.path.exists(abs_path):
+            with open(abs_path, "r") as f:
+                existing = f.read().strip()
+            if existing == html_code.strip():
+                return {
+                    "success": False,
+                    "skipped": True,
+                    "message": "index.html 내용이 동일하여 커밋 생략",
+                    "timestamp": commit_time
+                }
 
-        # 2. 최신 상태로 Pull
+
+        # 3. 최신 상태로 Pull
         pull_result = subprocess.run(
             ["git", "pull", "--rebase", "origin", "main"],
             capture_output=True,
@@ -27,15 +39,15 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
                 "timestamp": commit_time
             }
 
-        # 3. 파일 덮어쓰기
+        # 4. 파일 덮어쓰기
         with open(abs_path, "w") as f:
             f.write(html_code)
 
 
-        # 4. 변경 사항 있는 경우 Staging Area에 추가
+        # 5. 변경 사항 있는 경우 Staging Area에 추가
         subprocess.run(["git", "add", file_path], check=True, capture_output=True, text=True)
 
-        # 5. 변경 사항 확인
+        # 6. 변경 사항 확인
         diff_result = subprocess.run(
             ["git", "diff", "--cached", "--quiet", file_path],
             capture_output=True,
@@ -49,17 +61,17 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
                 "timestamp": commit_time
             }
 
-        # 6. 커밋
+        # 7. 커밋
         subprocess.run(["git", "commit", "-m", commit_message], check=True, capture_output=True, text=True)
 
-        # 7. Push
+        # 8. Push
         push_result = subprocess.run(
             ["git", "push", "origin", "main"],
             capture_output=True,
             text=True
         )
 
-        # 8. "Everything up-to-date"도 정상 처리
+        # 9. "Everything up-to-date"도 정상 처리
         if "Everything up-to-date" in (push_result.stdout or ""):
             return {
                 "success": True,
@@ -67,7 +79,7 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
                 "timestamp": commit_time
             }
 
-        # 9. Push 실패 시 에러 처리
+        # 10. Push 실패 시 에러 처리
         if push_result.returncode != 0:
             return {
                 "success": False,
@@ -78,7 +90,7 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
                 "timestamp": commit_time
             }
 
-        # 10. Commit ID 추출
+        # 11. Commit ID 추출
         result = subprocess.run(
             ["git", "rev-parse", "HEAD"],
             capture_output=True,
@@ -86,7 +98,7 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
         )
         commit_hash = result.stdout.strip()
 
-        # 11. 프리뷰 저장
+        # 12. 프리뷰 저장
         preview_path = os.path.join("static", "preview", f"{commit_hash}.html")
         os.makedirs(os.path.dirname(preview_path), exist_ok=True)
         with open(preview_path, "w") as dst:
