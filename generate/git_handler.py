@@ -24,7 +24,8 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
     repo_dir = os.path.expanduser("~/orrne-server-clean")
     commit_time = datetime.utcnow().isoformat()
     abs_path = os.path.join(repo_dir, file_path)
-
+    
+    print("[DEBUG] force_commit =", force_commit)
     try:
         # 1.Git 저장소로 이동
         os.chdir(repo_dir)
