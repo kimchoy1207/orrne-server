@@ -16,12 +16,12 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
             with open(abs_path, "r") as f:
                 existing = f.read().strip()
             if existing == html_code.strip():
-                # 이 부분에 추가!
+                # 변경된 내용 원상복구 (작업 디렉토리 깨끗하게 유지)
                 subprocess.run(["git", "restore", file_path], check=True)
                 return {
                     "success": False,
                     "skipped": True,
-                    "message": "index.html 내용이 동일하여 커밋 생략",
+                    "message": "index.html 내용이 동일하여 커밋 생략 및 변경사항 복원 완료",
                     "timestamp": commit_time
                 }
 
