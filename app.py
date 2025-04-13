@@ -92,6 +92,14 @@ def admin_logs():
 @app.route("/admin/rollback", methods=["POST"])
 def rollback():
     try:
+
+        #  롤백 전에 작업 상태 정리
+        subprocess.run(["git", "add", "."], check=False, capture_output=True, text=True)
+        subprocess.run(["git", "stash", "--include-untracked"], check=False, capture_output=True, text=True)
+        subprocess.run(["git", "fetch", "origin"], check=True)
+        subprocess.run(["git", "reset", "--hard", "origin/main"], check=True)
+
+
         # 1. Git 작업 디렉토리로 강제 이동
         repo_dir = os.path.expanduser("~/orrne-server-clean")
         os.chdir(repo_dir)
