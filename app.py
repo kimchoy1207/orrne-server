@@ -7,6 +7,7 @@ from generate.logger import log_commit
 import json
 import subprocess
 import logging
+import re
 
 logging.basicConfig(
      level=logging.INFO,
@@ -37,8 +38,22 @@ def generate():
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}]
         )
+        
+        # OpenAI 응답 가공
+        raw_response = response.choices[0].message.content.strip()
 
-        html_code = response.choices[0].message.content.strip()
+        # ```html 블록 추출
+        match = re.search(r"```html\s*(.*?)```", raw_response, flags=re.DOTALL | re.IGNORECASE)
+        if match:
+            html_code = match.group(1).strip()
+        else:
+            # fallback: <html> 또는 <!DOCTYPE html>로 시작하는 위치부터 추출
+            html_start = re.search(r"(?i)(<!doctype html>|<html[\s>])", raw_response)
+            if html_start:
+                html_code = raw_response[html_start.start():].strip()
+            else:
+                return jsonify({"error": "OpenAI 응답에서 HTML 코드를 찾을 수 없습니다."}), 400
+
 
         if "<html" not in html_code.lower():
             return jsonify({"error": "OpenAI 응답이 HTML 형식이 아닙니다."}), 400
