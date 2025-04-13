@@ -161,7 +161,7 @@ def rollback():
             f.write(restored_html)
 
         # 8. 자동 커밋 & 푸시
-        result = git_commit_and_push("index.html", restored_html, commit_message=f"Rollback to {commit_id}")
+        result = git_commit_and_push("index.html", restored_html, commit_message=f"Rollback to {commit_id}", force_commit=True)
 
         # 9. 결과 처리
         if result.get("success"):
