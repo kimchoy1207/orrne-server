@@ -127,7 +127,7 @@ def rollback():
         logging.debug(f"Selected rollback commit_id: {commit_id}")
 
         # rollback 전에 변경사항 stash
-        subprocess.run(["git", "stash", "--include-untracked"], check=True, capture_output=True, text=True)
+        subprocess.run(["git", "stash", "--include-untracked"], check=False, capture_output=True, text=True)
 
         # Git에서 index.html 내용 복원
         try:
@@ -167,7 +167,10 @@ def rollback():
                 restored_html[:10000],
                 extra_info={"rollback_from": commit_id}
             )
-            logging.info(f"Rollback successful to {commit_id}")
+            # rollback 이후 이전 작업 복원 (선택적)
+            subprocess.run(["git", "stash", "pop"], check=False, capture_output=True, text=True)
+            
+            logging.info(f"Rollback successful to {commit_id} - {rollback_target.get('prompt', '')[:40]}")
             return jsonify({
                 "status": "success",
                 "rolled_back_to": commit_id,
