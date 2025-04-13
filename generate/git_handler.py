@@ -53,6 +53,10 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
                     "timestamp": commit_time
                 }
 
+        # force_commit 모드일 경우 바로 로깅
+        if force_commit:
+            print("[FORCE COMMIT MODE] 강제 커밋 실행 중")
+
 
         # 3. 최신 상태로 Pull
         pull_result = subprocess.run(
