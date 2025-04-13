@@ -89,6 +89,7 @@ def admin_logs():
 
 @app.route("/admin/rollback", methods=["POST"])
 def rollback():
+    print("CWD:", os.getcwd())
     logging.debug("Starting rollback request")
     auth_header = request.headers.get("Authorization")
     if not auth_header or "Bearer admin-secret-token-here" not in auth_header:
