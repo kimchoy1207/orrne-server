@@ -7,14 +7,17 @@ from bs4 import BeautifulSoup
 def normalize_html(html):
     soup = BeautifulSoup(html, "html.parser")
 
-    # 구조를 문자열로 표현 (줄바꿈, 들여쓰기 무시)
+    # 불필요한 태그 제거 (예: <meta>, <style>)
+    for tag in soup(["meta", "style"]):
+        tag.decompose()
+
+    # 구조를 문자열로 표현
     structure = soup.prettify()
 
-    # 텍스트만 따로 추출 (본문 차이 감지)
+    # 텍스트만 추출
     text_content = soup.get_text(separator=' ', strip=True)
 
     return structure.strip(), text_content.strip()
-
 
 
 def git_commit_and_push(file_path, html_code, commit_message="auto: update index.html"):
@@ -33,6 +36,11 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
             
             old_structure, old_text = normalize_html(existing)
             new_structure, new_text = normalize_html(html_code)
+
+            print("OLD STRUCTURE:\n", old_structure)
+            print("NEW STRUCTURE:\n", new_structure)
+            print("OLD TEXT:\n", old_text)
+            print("NEW TEXT:\n", new_text)
 
 
             if old_structure == new_structure and old_text == new_text:
