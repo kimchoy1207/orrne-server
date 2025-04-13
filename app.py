@@ -126,6 +126,9 @@ def rollback():
         commit_id = rollback_target["commit_id"]
         logging.debug(f"Selected rollback commit_id: {commit_id}")
 
+        # rollback 전에 변경사항 stash
+        subprocess.run(["git", "stash", "--include-untracked"], check=True, capture_output=True, text=True)
+
         # Git에서 index.html 내용 복원
         try:
             restored_html = subprocess.check_output(
