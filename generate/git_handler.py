@@ -20,7 +20,7 @@ def normalize_html(html):
     return structure.strip(), text_content.strip()
 
 
-def git_commit_and_push(file_path, html_code, commit_message="auto: update index.html"):
+def git_commit_and_push(file_path, html_code, commit_message="auto: update index.html", force_commit=False):
     repo_dir = os.path.expanduser("~/orrne-server-clean")
     commit_time = datetime.utcnow().isoformat()
     abs_path = os.path.join(repo_dir, file_path)
@@ -30,7 +30,7 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
         os.chdir(repo_dir)
 
         # 2.index.html의 기존 내용과 새 내용 비교
-        if os.path.exists(abs_path):
+        if not force_commit and os.path.exists(abs_path):
             with open(abs_path, "r") as f:
                 existing = f.read()
             
@@ -107,7 +107,7 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
                 "success": True,
                 "message": "변경 사항 없어서 push 생략됨 (Everything up-to-date)",
                 "timestamp": commit_time
-            }
+                }
 
         # 10. Push 실패 시 에러 처리
         if push_result.returncode != 0:
