@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from generate.git_handler import git_commit_and_push
 from generate.logger import log_commit
 import json
+import subprocess
 
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -76,7 +77,6 @@ def admin_logs():
 
 
 
-
 @app.route("/admin/rollback", methods=["POST"])
 def rollback():
     auth_header = request.headers.get("Authorization")
@@ -84,12 +84,15 @@ def rollback():
         return jsonify({"error": "Unauthorized"}), 401
 
     try:
-        data = request.get_json()
+        data = request.get_json() or {}
         commit_id = data.get("commit_id")
 
         # logs/commits.json 로드
-        with open("logs/commits.json", "r", encoding="utf-8") as f:
-            commits = json.load(f)
+        try:
+            with open("logs/commits.json", "r", encoding="utf-8") as f:
+                commits = json.load(f)
+        except FileNotFoundError:
+            return jsonify({"error": "Commit log file not found"}), 500
 
         # 롤백 대상 커밋 결정
         if commit_id:
@@ -104,10 +107,24 @@ def rollback():
         commit_id = rollback_target["commit_id"]
 
         # Git에서 index.html 내용 복원
-        restored_html = subprocess.check_output(
-            ["git", "show", f"{commit_id}:index.html"],
-            stderr=subprocess.STDOUT
-        ).decode("utf-8")
+        try:
+            restored_html = subprocess.check_output(
+                ["git", "show", f"{commit_id}:index.html"],
+                stderr=subprocess.STDOUT
+            ).decode("utf-8")
+        except subprocess.CalledProcessError as e:
+            stdout = e.stdout.decode("utf-8") if isinstance(e.stdout, bytes) else e.stdout
+            stderr = e.stderr.decode("utf-8") if isinstance(e.stderr, bytes) else e.stderr
+            return jsonify({
+                "status": "error",
+                "message": "Failed to restore HTML from Git",
+                "details": {
+                    "error": str(e),
+                    "stdout": stdout,
+                    "stderr": stderr,
+                    "exit_code": e.returncode
+                }
+            }), 500
 
         # index.html 덮어쓰기
         with open("index.html", "w") as f:
@@ -117,6 +134,12 @@ def rollback():
         result = git_commit_and_push("index.html", restored_html, commit_message=f"Rollback to {commit_id}")
 
         if result.get("success"):
+            log_commit(
+                f"[Rollback] to {commit_id}",
+                result["commit_id"],
+                restored_html[:10000],
+                extra_info={"rollback_from": commit_id}
+            )
             return jsonify({
                 "status": "success",
                 "rolled_back_to": commit_id,
@@ -128,16 +151,33 @@ def rollback():
             return jsonify({
                 "status": "error",
                 "message": "Git push failed",
-                "details": result.get("error", "Unknown error")
+                "details": {
+                    "error": result.get("error", "Unknown error"),
+                    "stdout": result.get("stdout", "No stdout"),
+                    "stderr": result.get("stderr", "No stderr"),
+                    "exit_code": result.get("details", "No exit code")
+                }
             }), 500
 
+    except subprocess.CalledProcessError as e:
+        stdout = e.stdout.decode("utf-8") if isinstance(e.stdout, bytes) else e.stdout
+        stderr = e.stderr.decode("utf-8") if isinstance(e.stderr, bytes) else e.stderr
+        return jsonify({
+            "status": "error",
+            "message": "Git command failed",
+            "details": {
+                "error": str(e),
+                "stdout": stdout,
+                "stderr": stderr,
+                "exit_code": e.returncode
+            }
+        }), 500
     except Exception as e:
         return jsonify({
             "status": "error",
             "message": "Internal server error",
             "details": str(e)
         }), 500
-
 
 
 if __name__ == "__main__":
