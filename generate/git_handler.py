@@ -29,35 +29,26 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
         # 1.Git 저장소로 이동
         os.chdir(repo_dir)
 
-        # 2.index.html의 기존 내용과 새 내용 비교
-        if not force_commit and os.path.exists(abs_path):
+        # 2.force_commit이면 비교 자체를 건너뜀
+        if os.path.exists(abs_path):
             with open(abs_path, "r") as f:
                 existing = f.read()
-            
-            old_structure, old_text = normalize_html(existing)
-            new_structure, new_text = normalize_html(html_code)
 
-            print("OLD STRUCTURE:\n", old_structure)
-            print("NEW STRUCTURE:\n", new_structure)
-            print("OLD TEXT:\n", old_text)
-            print("NEW TEXT:\n", new_text)
+            if not force_commit:
+                old_structure, old_text = normalize_html(existing)
+                new_structure, new_text = normalize_html(html_code)
 
-
-            if old_structure == new_structure and old_text == new_text:
-            # 작업 디렉토리 깨끗하게 유지 (필요하면 restore 실행)
-                print("[SKIP COMMIT] 구조 및 텍스트가 동일하여 생략됨")
-                subprocess.run(["git", "restore", file_path], check=False)
-                return {
-                    "success": False,
-                    "skipped": True,
-                    "message": "HTML 구조가 동일하여 커밋 생략",
-                    "timestamp": commit_time
-                }
-
-        # force_commit 모드일 경우 바로 로깅
-        if force_commit:
-            print("[FORCE COMMIT MODE] 강제 커밋 실행 중")
-
+                if old_structure == new_structure and old_text == new_text:
+                    print("[SKIP COMMIT] 구조 및 텍스트가 동일하여 생략됨")
+                    subprocess.run(["git", "restore", file_path], check=False)
+                    return {
+                        "success": False,
+                        "skipped": True,
+                        "message": "HTML 구조가 동일하여 커밋 생략",
+                        "timestamp": commit_time
+                    }       
+            else:
+                print("[FORCE COMMIT MODE] 강제 커밋 실행 중")
 
         # 3. 최신 상태로 Pull
         pull_result = subprocess.run(
