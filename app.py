@@ -90,75 +90,65 @@ def admin_logs():
 @app.route("/admin/rollback", methods=["POST"])
 def rollback():
     logging.debug("Starting rollback request")
-    logging.debug(f"Received data: {request.get_json()}")
     auth_header = request.headers.get("Authorization")
     if not auth_header or "Bearer admin-secret-token-here" not in auth_header:
-        logging.error("Unauthorized access attempt")
         return jsonify({"error": "Unauthorized"}), 401
 
     try:
         data = request.get_json() or {}
         commit_id = data.get("commit_id")
-        logging.debug(f"Requested commit_id: {commit_id}")
 
-        # logs/commits.json 로드
-        try:
-            with open("logs/commits.json", "r", encoding="utf-8") as f:
-                commits = json.load(f)
-            logging.debug(f"Commits count: {len(commits)}")
-            logging.debug(f"Available commit IDs: {[c['commit_id'] for c in commits]}")
-        except FileNotFoundError:
-            logging.error("Commit log file not found")
-            return jsonify({"error": "Commit log file not found"}), 500
+        # 커밋 로그 불러오기
+        with open("logs/commits.json", "r", encoding="utf-8") as f:
+            commits = json.load(f)
 
-        # 롤백 대상 커밋 결정
+        # 롤백 커밋 결정
         if commit_id:
             rollback_target = next((c for c in commits if c["commit_id"] == commit_id), None)
             if not rollback_target:
-                logging.error(f"Commit ID {commit_id} not found")
                 return jsonify({"error": "Commit ID not found"}), 404
         else:
             if len(commits) < 2:
-                logging.error("No rollback target available")
                 return jsonify({"error": "No rollback target available"}), 400
             rollback_target = commits[-2]
 
         commit_id = rollback_target["commit_id"]
-        logging.debug(f"Selected rollback commit_id: {commit_id}")
 
-        # rollback 전에 변경사항 stash
-        subprocess.run(["git", "stash", "--include-untracked"], check=False, capture_output=True, text=True)
-
-        # Git에서 index.html 내용 복원
-        try:
-            restored_html = subprocess.check_output(
-                ["git", "show", f"{commit_id}:index.html"],
-                stderr=subprocess.STDOUT
-            ).decode("utf-8")
-            logging.debug("Successfully restored HTML from Git")
-        except subprocess.CalledProcessError as e:
-            stdout = e.stdout.decode("utf-8") if isinstance(e.stdout, bytes) else e.stdout
-            stderr = e.stderr.decode("utf-8") if isinstance(e.stderr, bytes) else e.stderr
-            logging.error(f"Failed to restore HTML: {str(e)}")
+        # 변경사항 저장 (필수)
+        stash_result = subprocess.run(["git", "stash", "--include-untracked"], capture_output=True, text=True)
+        if stash_result.returncode != 0:
             return jsonify({
                 "status": "error",
-                "message": "Failed to restore HTML from Git",
+                "message": "Git stash failed",
                 "details": {
-                    "error": str(e),
-                    "stdout": stdout,
-                    "stderr": stderr,
-                    "exit_code": e.returncode
+                    "stdout": stash_result.stdout,
+                    "stderr": stash_result.stderr
                 }
             }), 500
 
-        # index.html 덮어쓰기
+        # 최신 상태 동기화
+        pull_result = subprocess.run(["git", "pull", "--rebase", "origin", "main"], capture_output=True, text=True)
+        if pull_result.returncode != 0:
+            return jsonify({
+                "status": "error",
+                "message": "Git pull failed",
+                "details": {
+                    "stdout": pull_result.stdout,
+                    "stderr": pull_result.stderr
+                }
+            }), 500
+
+        # HTML 파일 복원
+        restored_html = subprocess.check_output(
+            ["git", "show", f"{commit_id}:index.html"],
+            stderr=subprocess.STDOUT
+        ).decode("utf-8")
+
         with open("index.html", "w") as f:
             f.write(restored_html)
-        logging.debug("index.html overwritten")
 
-        # Git 자동 커밋 + 푸시
+        # 커밋 + 푸시
         result = git_commit_and_push("index.html", restored_html, commit_message=f"Rollback to {commit_id}")
-        logging.debug(f"git_commit_and_push result: {result}")
 
         if result.get("success"):
             log_commit(
@@ -167,28 +157,21 @@ def rollback():
                 restored_html[:10000],
                 extra_info={"rollback_from": commit_id}
             )
-            # rollback 이후 이전 작업 복원 (선택적)
-            subprocess.run(["git", "stash", "pop"], check=False, capture_output=True, text=True)
-            
-            logging.info(f"Rollback successful to {commit_id} - {rollback_target.get('prompt', '')[:40]}")
             return jsonify({
                 "status": "success",
                 "rolled_back_to": commit_id,
                 "new_commit_id": result["commit_id"]
             })
         elif result.get("skipped"):
-            logging.info("No changes to rollback")
             return jsonify({"status": "skipped", "message": "No changes to rollback"})
         else:
-            logging.error(f"Git operation failed: {result}")
             return jsonify({
                 "status": "error",
                 "message": result.get("message", "Git operation failed"),
                 "details": {
                     "error": result.get("error", "No specific error provided"),
-                    "stdout": result.get("stdout", "No stdout"),
-                    "stderr": result.get("stderr", "No stderr"),
-                    "exit_code": result.get("details", "No exit code")
+                    "stdout": result.get("stdout", ""),
+                    "stderr": result.get("stderr", "")
                 }
             }), 500
 
