@@ -11,20 +11,6 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
         # Git 저장소로 이동
         os.chdir(repo_dir)
 
-        # 1. 수정사항 임시 저장 (Stash)
-        stash_result = subprocess.run(
-            ["git", "stash", "--include-untracked"],
-            capture_output=True,
-            text=True
-        )
-        if stash_result.returncode != 0:
-            return {
-                "success": False,
-                "message": "Git stash failed",
-                "stdout": stash_result.stdout,
-                "stderr": stash_result.stderr,
-                "timestamp": commit_time
-            }
 
         # 2. 최신 상태로 Pull
         pull_result = subprocess.run(
@@ -45,24 +31,6 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
         with open(abs_path, "w") as f:
             f.write(html_code)
 
-        # 4. Stash 복원 (Rollback 후에 복원되어야 함)
-        stash_list = subprocess.run(
-            ["git", "stash", "list"],
-            capture_output=True,
-            text=True
-        ).stdout.strip()
-        if stash_list:
-            try:
-                subprocess.run(["git", "stash", "pop"], check=True, capture_output=True, text=True)
-            except subprocess.CalledProcessError as e:
-                return {
-                    "success": False,
-                    "message": "Git stash pop failed",
-                    "details": str(e),
-                    "stdout": e.stdout,
-                    "stderr": e.stderr,
-                    "timestamp": commit_time
-                }
 
         # 5. 변경 사항 있는 경우 Staging Area에 추가
         subprocess.run(["git", "add", file_path], check=True, capture_output=True, text=True)
