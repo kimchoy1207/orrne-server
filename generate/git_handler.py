@@ -16,6 +16,8 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
             with open(abs_path, "r") as f:
                 existing = f.read().strip()
             if existing == html_code.strip():
+                # 이 부분에 추가!
+                subprocess.run(["git", "restore", file_path], check=True)
                 return {
                     "success": False,
                     "skipped": True,
