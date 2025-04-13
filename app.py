@@ -122,7 +122,8 @@ def rollback():
         commit_id = rollback_target["commit_id"]
         logging.info(f"[rollback] Targeting commit: {commit_id}")
 
-        # 5. 작업 상태 stash → reset 으로 안전하게 롤백 전 상태 초기화
+        # 5. 작업 상태 add -> stash → reset 으로 안전하게 롤백 전 상태 초기화
+        subprocess.run(["git", "add", "index.html"], check=False, capture_output=True, text=True)
         subprocess.run(["git", "stash", "--include-untracked"], check=False, capture_output=True, text=True)
         subprocess.run(["git", "fetch", "origin"], check=True)
         subprocess.run(["git", "reset", "--hard", "origin/main"], check=True)
