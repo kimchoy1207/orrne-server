@@ -59,19 +59,19 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
 
 
         # 3. 최신 상태로 Pull
-        pull_result = subprocess.run(
-            ["git", "pull", "--rebase", "origin", "main"],
-            capture_output=True,
-            text=True
-        )
-        if pull_result.returncode != 0:
-            return {
-                "success": False,
-                "message": "Git pull failed",
-                "stdout": pull_result.stdout,
-                "stderr": pull_result.stderr,
-                "timestamp": commit_time
-            }
+        #pull_result = subprocess.run(
+        #    ["git", "pull", "--rebase", "origin", "main"],
+        #    capture_output=True,
+        #    text=True
+        #)
+        #if pull_result.returncode != 0:
+        #    return {
+        #        "success": False,
+        #        "message": "Git pull failed",
+        #        "stdout": pull_result.stdout,
+        #        "stderr": pull_result.stderr,
+        #        "timestamp": commit_time
+        #    }
 
         # 4. 파일 덮어쓰기
         with open(abs_path, "w") as f:
