@@ -72,6 +72,12 @@ def generate():
                 "timestamp": git_result["timestamp"]
             })
 
+        elif git_result.get("skipped"):
+            return jsonify({
+                "status": "skipped",
+                "message": git_result["message"]
+            })
+
         else:
             return jsonify({
                 "status": "error",
