@@ -62,11 +62,24 @@ def generate():
 
         if "<html" not in html_code.lower():
             return jsonify({"error": "OpenAI 응답이 HTML 형식이 아닙니다."}), 400
+       
 
-        file_path = "index.html"
+        # 1) 최종 생성 파일명을 우선 결정 (임시 없이)
+        commit_id = subprocess.check_output(
+            ["uuidgen"], text=True  # 임시로 uuid를 커밋 ID로 사용
+        ).strip()
+        output_path = os.path.join("static", "generated", f"{commit_id}.html")
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(html_code)
 
-        # git 커밋 + 푸시
-        git_result = git_commit_and_push(file_path, html_code)
+        # 2) 생성물 파일만 커밋
+        git_result = git_commit_and_push(output_path, html_code, commit_message=f"Add {commit_id}.html"
+                                          )
+
+        output_path = os.path.join("static", "generated", f"{commit_id}.html")
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(html_code)
+        git_result = git_commit_and_push(output_path, html_code)
 
         if git_result.get("success"):
             log_commit(prompt, git_result["commit_id"], html_code[:10000])
@@ -90,12 +103,20 @@ def generate():
                 "error": git_result.get("error", "")
             }), 500
 
+
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        # 스택트레이스 전체를 로그에 기록
+        logging.exception("Generate handler failed")
+        return jsonify({
+            "error": "Internal server error",
+            "details": str(e)
+        }), 500
+
+
 
 @app.route("/preview/<commit_id>", methods=["GET"])
 def preview(commit_id):
-    preview_file = os.path.join("static", "preview", f"{commit_id}.html")
+    preview_file = os.path.join("static", "generated", f"{commit_id}.html")
     if not os.path.exists(preview_file):
         return jsonify({"error": "Preview file not found"}), 404
     return send_file(preview_file)
