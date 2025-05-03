@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>가사도우미 의뢰</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input[type="text"], input[type="email"], textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        input[type="submit"] {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>가사도우미 의뢰</h1>
+    <p>간단한 양식을 작성하여 가사도우미를 의뢰하세요.</p>
+
+    <form>
+        <label for="name">이름:</label>
+        <input type="text" id="name" name="name" required>
+
+        <label for="email">이메일:</label>
+        <input type="email" id="email" name="email" required>
+
+        <label for="address">주소:</label>
+        <input type="text" id="address" name="address">
+
+        <label for="details">요구사항:</label>
+        <textarea id="details" name="details" rows="4"></textarea>
+        
+        <input type="submit" value="신청하기">
+    </form>
+
+</body>
+</html>
