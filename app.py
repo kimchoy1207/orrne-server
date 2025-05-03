@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_from_directory
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
@@ -22,7 +22,12 @@ logging.basicConfig(
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
+
+@app.route('/', methods=['GET'])
+def serve_index():
+    return send_from_directory('static', 'index.html')
+
 
 @app.route("/generate", methods=["POST"])
 def generate():
@@ -112,6 +117,10 @@ def admin_logs():
 
 @app.route("/admin/rollback", methods=["POST"])
 def rollback():
+    auth = request.headers.get('Authorization', '')
+    if 'Bearer admin-secret-token-here' not in auth:
+        return jsonify({"error": "Unauthorized"}), 401
+
     try:
 
         #  롤백 전에 작업 상태 정리
