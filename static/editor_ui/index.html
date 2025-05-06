@@ -28,6 +28,15 @@
         <span id="loading-indicator" style="display:none;">⏳ 생성 중...</span>
       </section>
 
+      <!-- 수정 요청 영역 -->
+      <section class="revision-section">
+        <h3>🔁 수정 요청</h3>
+        <textarea id="revision-input" placeholder="예: 폰트를 더 크게 해주세요, 버튼을 오른쪽에 정렬해주세요 등..."></textarea>
+        <div class="action-buttons">
+          <button id="revise-btn" onclick="submitRevision()">✏️ 수정 요청</button>
+        </div>
+      </section>
+
       <!-- 응답 미리보기 -->
       <section class="preview-section">
         <h2>GPT 응답 미리보기</h2>

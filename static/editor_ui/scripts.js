@@ -1,3 +1,59 @@
+function loadCommitList() {
+  // 커밋 카드 목록 갱신 후
+  const cards = document.querySelectorAll(".commit-card");
+  cards.forEach(card => {
+    card.addEventListener("click", () => {
+      document.querySelectorAll(".commit-card").forEach(c => c.classList.remove("selected"));
+      card.classList.add("selected");
+    });
+  });
+}
+
+
+async function submitRevision() {
+  const revisionInput = document.getElementById("revision-input").value.trim();
+  const selectedCard = document.querySelector(".commit-card.selected");
+
+  if (!selectedCard) {
+    alert("먼저 히스토리에서 수정할 항목을 선택해주세요.");
+    return;
+  }
+
+  if (!revisionInput) {
+    alert("수정 요청 내용을 입력해주세요.");
+    return;
+  }
+
+  // 커밋 ID는 card의 id 속성에서 추출 (ex: commit-abcdef → abcdef)
+  const selectedCommitId = selectedCard.id.replace("commit-", "");
+
+  try {
+    const res = await fetch("/revise", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        commit_id: selectedCommitId,
+        prompt: revisionInput,
+      }),
+    });
+
+    const result = await res.json();
+
+    if (res.ok && result.status === "success") {
+      alert("✅ 수정 요청 완료! 미리보기에서 확인하세요.");
+      document.getElementById("revision-input").value = "";
+      loadCommitList();  // 새로운 커밋 목록 반영
+    } else {
+      alert("❌ 수정 실패: " + (result.message || result.error || "서버 오류"));
+    }
+
+  } catch (error) {
+    console.error("[submitRevision] error:", error);
+    alert("서버 오류 발생: " + error.message);
+  }
+}
+
+
 // 토스트 메시지
 function showToast(msg) {
   const t = document.getElementById('toast');

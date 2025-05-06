@@ -1,67 +1,124 @@
-/* 레이아웃 */
+/* 기본 레이아웃 */
 .layout-container {
   display: flex;
   height: 100vh;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f9fafb;
 }
+
+/* 사이드바 */
 .sidebar {
   width: 280px;
-  background: #f5f5f5;
+  background: #ffffff;
   padding: 1rem;
   border-right: 1px solid #ddd;
   overflow-y: auto;
   position: sticky;
   top: 0;
 }
+
+.sidebar h2 {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+/* 메인 콘텐츠 */
 .main-content {
   flex: 1;
-  padding: 1.5rem;
+  padding: 2rem;
   overflow-y: auto;
 }
 
-/* 입력 영역 */
-.input-section {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-.input-section textarea {
-  flex: 1;
-  height: 80px;
-  padding: 0.5rem;
-  font-size: 1rem;
-}
-
-/* 버튼 그룹 */
-.action-buttons {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
+/* 공통 버튼 */
 button {
   padding: 0.5rem 1rem;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  font-size: 0.95rem;
+  transition: background-color 0.2s ease;
 }
-#submit-btn { background: #3b82f6; color: white; }
-#approve-btn { background: #22c55e; color: white; }
-#cancel-btn  { background: #e5e7eb; }
+
+/* 입력 영역 */
+.input-section,
+.revision-section {
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+}
+
+.input-section textarea,
+.revision-section textarea {
+  width: 100%;
+  height: 100px;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  resize: vertical;
+  font-family: inherit;
+}
+
+#submit-btn {
+  background-color: #3b82f6;
+  color: white;
+}
+#submit-btn:hover {
+  background-color: #2563eb;
+}
+
+#revise-btn {
+  background-color: #f59e0b;
+  color: white;
+}
+#revise-btn:hover {
+  background-color: #d97706;
+}
+
+#approve-btn {
+  background-color: #22c55e;
+  color: white;
+}
+#approve-btn:hover {
+  background-color: #16a34a;
+}
+
+#cancel-btn {
+  background-color: #e5e7eb;
+  color: #111827;
+}
+#cancel-btn:hover {
+  background-color: #d1d5db;
+}
+
+/* 버튼 그룹 공통 */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
 
 /* 로그 카드 */
 .commit-card {
-  background: #fff;
+  background: #ffffff;
   border: 1px solid #ccc;
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 1rem;
   margin-bottom: 1rem;
-  transition: background 0.3s;
+  transition: background 0.3s ease;
 }
-.commit-card.latest-commit { background: #e0f2fe; }
-.commit-card:hover { background: #f0f9ff; }
+.commit-card.latest-commit {
+  background-color: #e0f2fe;
+}
+.commit-card:hover {
+  background-color: #f0f9ff;
+}
 
 /* 로그 테이블 */
 #logs {
@@ -81,25 +138,50 @@ button {
   position: sticky;
   top: 0;
 }
-#log-table tbody tr:hover { background: #f9fafb; }
-#log-table button { padding: 0.3rem 0.6rem; }
+#log-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+#log-table button {
+  padding: 0.3rem 0.6rem;
+}
 
 /* 프리뷰 */
 .preview-section iframe {
   width: 100%;
   height: 400px;
   border: 1px solid #ccc;
-  border-radius: 4px;
-  margin-bottom: 1rem;
+  border-radius: 6px;
+  margin-top: 1rem;
+  background-color: white;
 }
 
 /* 모달 */
-#rollback-modal { display: flex; }
-#rollback-modal .modal-content { }
+#rollback-modal {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#rollback-modal .modal-content {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
 
-/* 토스트 */
+/* 토스트 메시지 */
 #toast {
   animation: fadeIn 0.3s ease forwards;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #111827;
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  z-index: 999;
 }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
