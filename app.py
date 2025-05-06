@@ -161,6 +161,23 @@ def admin_logs():
 
 
 
+@app.route("/admin/approve/<commit_id>", methods=["POST"])
+def approve(commit_id):
+    source_path = os.path.join("static", "generated", f"{commit_id}.html")
+    target_path = os.path.join("static", "index.html")
+
+    if not os.path.exists(source_path):
+        return jsonify({"error": "Generated file not found"}), 404
+
+    shutil.copy(source_path, target_path)
+
+    subprocess.run(["git", "add", target_path])
+    subprocess.run(["git", "commit", "-m", f"approve {commit_id}"])
+    subprocess.run(["git", "push", "origin", "main"])
+
+    return jsonify({"status": "approved", "commit_id": commit_id})
+
+
 
 @app.route("/admin/rollback", methods=["POST"])
 def rollback():
