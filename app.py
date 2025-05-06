@@ -90,6 +90,11 @@ def generate():
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(html_code)
 
+        # preview 경로에도 동일하게 저장
+        preview_path = os.path.join("static", "preview", f"{commit_id}.html")
+        with open(preview_path, "w", encoding="utf-8") as f:
+            f.write(html_code)
+
         # 2) 생성물 파일만 커밋
         git_result = git_commit_and_push(
                 output_path, 
@@ -159,24 +164,27 @@ def admin_logs():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
-
 @app.route("/admin/approve/<commit_id>", methods=["POST"])
 def approve(commit_id):
-    source_path = os.path.join("static", "generated", f"{commit_id}.html")
-    target_path = os.path.join("static", "index.html")
+    gen_path = os.path.join("static", "generated", f"{commit_id}.html")
+    preview_path = os.path.join("static", "preview", f"{commit_id}.html")
+    index_path = os.path.join("static", "index.html")
 
-    if not os.path.exists(source_path):
-        return jsonify({"error": "Generated file not found"}), 404
+    # generated에 없으면 preview에서 복사해 generated를 보완
+    if not os.path.exists(gen_path):
+        if os.path.exists(preview_path):
+            shutil.copy(preview_path, gen_path)
+        else:
+            return jsonify({"error": "Neither generated nor preview file found"}), 404
 
-    shutil.copy(source_path, target_path)
+    # 배포
+    shutil.copy(gen_path, index_path)
 
-    subprocess.run(["git", "add", target_path])
+    subprocess.run(["git", "add", index_path])
     subprocess.run(["git", "commit", "-m", f"approve {commit_id}"])
     subprocess.run(["git", "push", "origin", "main"])
 
     return jsonify({"status": "approved", "commit_id": commit_id})
-
 
 
 @app.route("/admin/rollback", methods=["POST"])
