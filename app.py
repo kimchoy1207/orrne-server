@@ -189,6 +189,104 @@ def approve(commit_id):
     return jsonify({"status": "approved", "commit_id": commit_id})
 
 
+
+@app.route("/revise", methods=["POST"])
+def revise():
+    try:
+        data = request.get_json()
+        commit_id = data.get("commit_id")
+        revision_prompt = data.get("prompt", "").strip()
+
+        if not commit_id or not revision_prompt:
+            return jsonify({"error": "commit_id와 prompt가 필요합니다."}), 400
+
+        # 기존 HTML 경로 확인
+        existing_path = os.path.join("static", "generated", f"{commit_id}.html")
+        if not os.path.exists(existing_path):
+            return jsonify({"error": "기존 HTML 파일을 찾을 수 없습니다."}), 404
+
+        # 기존 HTML 읽기
+        with open(existing_path, "r", encoding="utf-8") as f:
+            existing_html = f.read()
+
+        # 통합 프롬프트 구성
+        combined_prompt = (
+            "다음은 기존 HTML 코드입니다:\n\n"
+            f"{existing_html}\n\n"
+            "아래 요청사항을 반영하여 HTML을 전체 구조로 다시 생성해 주세요:\n\n"
+            f"{revision_prompt}"
+        )
+
+        # GPT 호출
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": combined_prompt}]
+        )
+        raw_response = response.choices[0].message.content.strip()
+
+        # ```html 블록 추출
+        match = re.search(r"```html\s*(.*?)```", raw_response, flags=re.DOTALL | re.IGNORECASE)
+        if match:
+            html_code = match.group(1).strip()
+        else:
+            html_start = re.search(r"(?i)(<!doctype html>|<html[\s>])", raw_response)
+            if html_start:
+                html_code = raw_response[html_start.start():].strip()
+            else:
+                return jsonify({"error": "OpenAI 응답에서 HTML 코드를 찾을 수 없습니다."}), 400
+
+        if "<html" not in html_code.lower():
+            return jsonify({"error": "HTML 형식이 아닙니다."}), 400
+
+        # 새로운 UUID commit_id 생성
+        new_commit_id = subprocess.check_output(["uuidgen"], text=True).strip()
+        gen_path = os.path.join("static", "generated", f"{new_commit_id}.html")
+        preview_path = os.path.join("static", "preview", f"{new_commit_id}.html")
+
+        # HTML 저장
+        with open(gen_path, "w", encoding="utf-8") as f:
+            f.write(html_code)
+        with open(preview_path, "w", encoding="utf-8") as f:
+            f.write(html_code)
+
+        # Git 커밋 및 푸시
+        result = git_commit_and_push(
+            gen_path,
+            html_code,
+            commit_message=f"revise {commit_id} → {new_commit_id}",
+            force_commit=True
+        )
+
+        if result.get("success"):
+            log_commit(
+                f"[Revise from {commit_id}] {revision_prompt}",
+                result["commit_id"],
+                html_code[:10000],
+                extra_info={"revise_from": commit_id}
+            )
+            return jsonify({
+                "status": "success",
+                "commit_id": result["commit_id"],
+                "base_commit": commit_id,
+                "preview_url": f"/preview/{new_commit_id}"
+            })
+        else:
+            return jsonify({
+                "status": "error",
+                "message": result.get("message", "Git push failed"),
+                "error": result.get("error", "")
+            }), 500
+
+    except Exception as e:
+        logging.exception("[revise] 에러 발생")
+        return jsonify({
+            "error": "서버 내부 오류",
+            "details": str(e)
+        }), 500
+
+
+
+
 @app.route("/admin/rollback", methods=["POST"])
 def rollback():
     auth = request.headers.get('Authorization', '')
