@@ -13,9 +13,16 @@ generate/__pycache__/
 logs/
 flask.log
 
-# 정적 프리뷰
-#static/preview/
-
 # macOS 관련
 .DS_Store
+
+# static/generated 무시 → .html은 추적
+static/generated/
+!static/generated/
+!static/generated/*.html
+
+# static/preview 무시 → .html은 추적
+static/preview/
+!static/preview/
+!static/preview/*.html
 
