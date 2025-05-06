@@ -302,6 +302,8 @@ def rollback():
             "message": "Internal server error",
             "details": str(e)
         }), 500
+    
+    logging.info(f"[rollback] index.html restored to commit {commit_id}")
 
 
 
