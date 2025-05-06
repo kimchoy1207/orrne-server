@@ -26,7 +26,25 @@ app = Flask(__name__, static_folder='static')
 
 @app.route('/', methods=['GET'])
 def serve_index():
-    return send_from_directory('static', 'index.html')
+    return send_from_directory(app.static_folder, 'index.html')
+
+
+# 1) /ui/ 로 접속하면 static/ui/index.html 렌더링
+@app.route("/ui/", methods=["GET"])
+def serve_editor_ui():
+    return send_from_directory(
+        os.path.join(app.static_folder, "editor_ui"),
+        "index.html"
+    )
+
+
+# 2) /ui/ 아래의 .css/.js 파일 요청도 static/ui 폴더에서 서빙
+@app.route("/ui/<path:filename>", methods=["GET"])
+def serve_ui_assets(filename):
+    return send_from_directory(
+        os.path.join(app.static_folder, "editor_ui"),
+        filename
+    )
 
 
 @app.route("/generate", methods=["POST"])
@@ -73,14 +91,14 @@ def generate():
             f.write(html_code)
 
         # 2) 생성물 파일만 커밋
-        git_result = git_commit_and_push(output_path, html_code, commit_message=f"Add {commit_id}.html"
-                                          )
+        git_result = git_commit_and_push(
+                output_path, 
+                html_code, 
+                commit_message=f"Add {commit_id}.html", 
+                force_commit=True
+        )
 
-        output_path = os.path.join("static", "generated", f"{commit_id}.html")
-        with open(output_path, "w", encoding="utf-8") as f:
-            f.write(html_code)
-        git_result = git_commit_and_push(output_path, html_code)
-
+        
         if git_result.get("success"):
             log_commit(prompt, git_result["commit_id"], html_code[:10000])
             return jsonify({
@@ -113,13 +131,21 @@ def generate():
         }), 500
 
 
-
 @app.route("/preview/<commit_id>", methods=["GET"])
 def preview(commit_id):
-    preview_file = os.path.join("static", "generated", f"{commit_id}.html")
-    if not os.path.exists(preview_file):
-        return jsonify({"error": "Preview file not found"}), 404
-    return send_file(preview_file)
+    preview_path = os.path.join("static", "preview", f"{commit_id}.html")
+    generated_path = os.path.join("static", "generated", f"{commit_id}.html")
+
+    # preview 파일이 없고, generated는 있을 경우 fallback 복사
+    if not os.path.exists(preview_path):
+        if os.path.exists(generated_path):
+            os.makedirs(os.path.dirname(preview_path), exist_ok=True)
+            shutil.copy(generated_path, preview_path)
+        else:
+            return jsonify({"error": "Preview and generated file not found"}), 404
+
+    return send_file(preview_path)
+
 
 @app.route("/admin/logs", methods=["GET"])
 def admin_logs():
