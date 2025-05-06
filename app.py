@@ -8,6 +8,8 @@ import json
 import subprocess
 import logging
 import re
+import shutil
+
 
 logging.basicConfig(
      level=logging.INFO,
