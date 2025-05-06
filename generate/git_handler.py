@@ -32,30 +32,30 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
 
 
         # 2. 비교 조건을 force_commit 여부로 완전히 분리해야 함
-        if force_commit:
-            print("[FORCE COMMIT MODE] 강제 커밋 실행 중")
-        else:
-            if os.path.exists(abs_path):
-                with open(abs_path, "r") as f:
-                    existing = f.read()
+        #if force_commit:
+        #    print("[FORCE COMMIT MODE] 강제 커밋 실행 중")
+        #else:
+        #    if os.path.exists(abs_path):
+        #        with open(abs_path, "r") as f:
+        #            existing = f.read()
 
-                old_structure, old_text = normalize_html(existing)
-                new_structure, new_text = normalize_html(html_code)
+        #        old_structure, old_text = normalize_html(existing)
+        #        new_structure, new_text = normalize_html(html_code)
 
-                print("OLD STRUCTURE:\n", old_structure)
-                print("NEW STRUCTURE:\n", new_structure)
-                print("OLD TEXT:\n", old_text)
-                print("NEW TEXT:\n", new_text)
+        #        print("OLD STRUCTURE:\n", old_structure)
+        #        print("NEW STRUCTURE:\n", new_structure)
+        #        print("OLD TEXT:\n", old_text)
+        #        print("NEW TEXT:\n", new_text)
 
-                if old_structure == new_structure and old_text == new_text:
-                    print("[SKIP COMMIT] 구조 및 텍스트가 동일하여 생략됨")
-                    subprocess.run(["git", "restore", file_path], check=False)
-                    return {
-                        "success": False,
-                        "skipped": True,
-                        "message": "HTML 구조가 동일하여 커밋 생략",
-                        "timestamp": commit_time
-                    }
+        #        if old_structure == new_structure and old_text == new_text:
+        #            print("[SKIP COMMIT] 구조 및 텍스트가 동일하여 생략됨")
+        #            subprocess.run(["git", "restore", file_path], check=False)
+        #            return {
+        #                "success": False,
+        #                "skipped": True,
+        #                "message": "HTML 구조가 동일하여 커밋 생략",
+        #                "timestamp": commit_time
+        #            }
 
 
         # 3. 최신 상태로 Pull
@@ -142,7 +142,7 @@ def git_commit_and_push(file_path, html_code, commit_message="auto: update index
             "success": True,
             "commit_id": commit_hash,
             "timestamp": commit_time
-        }
+            }
 
     except subprocess.CalledProcessError as e:
         #  예외 발생 시 stdout/stderr 수집

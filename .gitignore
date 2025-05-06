@@ -14,7 +14,7 @@ logs/
 flask.log
 
 # 정적 프리뷰
-static/preview/
+#static/preview/
 
 # macOS 관련
 .DS_Store
