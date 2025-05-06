@@ -3,37 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>점심 메뉴</title>
+    <title>아침 메뉴</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        .menu-board {
+            max-width: 600px;
+            margin: 50px auto;
+            background-color: #fff;
             padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         h1 {
+            text-align: center;
             color: #333;
         }
         ul {
-            list-style-type: none;
+            list-style: none;
             padding: 0;
         }
         li {
-            background-color: #f4f4f4;
+            background-color: #f9f9f9;
             margin: 10px 0;
-            padding: 15px;
-            border-radius: 5px;
-            box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+        li:hover {
+            background-color: #e9e9e9;
+        }
+        .price {
+            background-color: #eee;
+            border-radius: 12px;
+            padding: 5px 10px;
+            font-size: 0.9em;
+            color: #555;
         }
     </style>
 </head>
 <body>
-    <h1>오늘의 점심 메뉴</h1>
-    <ul>
-        <li>비빔밥</li>
-        <li>된장찌개</li>
-        <li>불고기</li>
-        <li>김치찌개</li>
-        <li>치킨 샐러드</li>
-    </ul>
+    <div class="menu-board">
+        <h1>아침 메뉴</h1>
+        <ul>
+            <li>
+                <span>계란 후라이</span>
+                <span class="price">₩3,000</span>
+            </li>
+            <li>
+                <span>토스트</span>
+                <span class="price">₩2,500</span>
+            </li>
+            <li>
+                <span>과일 샐러드</span>
+                <span class="price">₩5,000</span>
+            </li>
+            <li>
+                <span>커피</span>
+                <span class="price">₩2,000</span>
+            </li>
+            <li>
+                <span>스무디</span>
+                <span class="price">₩4,000</span>
+            </li>
+        </ul>
+    </div>
 </body>
 </html>
