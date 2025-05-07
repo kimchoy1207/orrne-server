@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>아침 메뉴 게시판</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #e9ecef;
+            color: #333;
+        }
+        .container {
+            width: 90%;
+            max-width: 700px;
+            margin: 60px auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        h1 {
+            text-align: center;
+            color: #444;
+            font-size: 2.2em;
+            margin-bottom: 20px;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+        li:hover {
+            background-color: #f8f9fa;
+        }
+        li:last-child {
+            border-bottom: none;
+        }
+        .description {
+            color: #666;
+            font-style: italic;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        strong {
+            font-size: 1.1em;
+        }
+        @media (max-width: 500px) {
+            li {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>아침 메뉴</h1>
+        <ul>
+            <li>
+                <div>
+                    <strong>토스트</strong>
+                    <p class="description">바삭하고 고소한 식빵 위에 버터를 발라 구운 토스트</p>
+                </div>
+            </li>
+            <li>
+                <div>
+                    <strong>시리얼과 우유</strong>
+                    <p class="description">건강한 아침을 위한 곡물 시리얼과 신선한 우유</p>
+                </div>
+            </li>
+            <li>
+                <div>
+                    <strong>과일 샐러드</strong>
+                    <p class="description">신선한 제철 과일을 다채롭게 섞은 샐러드</p>
+                </div>
+            </li>
+            <li>
+                <div>
+                    <strong>오트밀</strong>
+                    <p class="description">영양 가득한 오트밀 한 그릇</p>
+                </div>
+            </li>
+        </ul>
+    </div>
+</body>
+</html>
