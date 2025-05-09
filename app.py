@@ -203,7 +203,13 @@ def revise():
         # 기존 HTML 경로 확인
         existing_path = os.path.join("static", "generated", f"{commit_id}.html")
         if not os.path.exists(existing_path):
-            return jsonify({"error": "기존 HTML 파일을 찾을 수 없습니다."}), 404
+            # preview 디렉토리 fallback
+            fallback_path = os.path.join("static", "preview", f"{commit_id}.html")
+            if os.path.exists(fallback_path):
+                existing_path = fallback_path
+            else:
+                return jsonify({"error": "기존 HTML 파일을 찾을 수 없습니다."}), 404
+
 
         # 기존 HTML 읽기
         with open(existing_path, "r", encoding="utf-8") as f:
