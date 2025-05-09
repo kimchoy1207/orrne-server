@@ -42,6 +42,11 @@ async function submitRevision() {
     if (res.ok && result.status === "success") {
       alert("✅ 수정 요청 완료! 미리보기에서 확인하세요.");
       document.getElementById("revision-input").value = "";
+
+      // 👉 미리보기 프레임 반영
+      document.getElementById("preview-frame").src = result.preview_url;
+      document.getElementById("preview-frame").dataset.commitId = result.commit_id;
+
       loadCommitList();  // 새로운 커밋 목록 반영
     } else {
       alert("❌ 수정 실패: " + (result.message || result.error || "서버 오류"));
@@ -124,6 +129,7 @@ async function fetchCommitHistory() {
   (data.logs || []).reverse().forEach((c, i) => {
     const div = document.createElement('div');
     div.className = 'commit-card' + (i === 0 ? ' latest-commit' : '');
+    div.id = `commit-${c.commit_id}`;  // <- 이 ID가 있어야 수정 시 추출 가능
     div.innerHTML = `
       <strong>${c.commit_id}</strong><br>
       ${c.prompt}<br>
