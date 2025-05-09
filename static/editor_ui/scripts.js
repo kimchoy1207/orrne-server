@@ -138,6 +138,7 @@ async function fetchCommitHistory() {
     `;
     list.appendChild(div);
   });
+  loadCommitList();
 }
 
 // 롤백 모달
@@ -167,5 +168,5 @@ document.getElementById('confirm-rollback').addEventListener('click', async () =
 });
 
 // 초기 로드
-fetchCommitHistory();
+fetchCommitHistory().then(loadCommitList);
 
