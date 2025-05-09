@@ -178,7 +178,12 @@ button {
   color: white;
   padding: 1rem 1.5rem;
   border-radius: 8px;
-  z-index: 999;
+  z-index: 999
+
+  max-width: 320px;           /* 알림 메시지의 최대 너비 제한 */
+  white-space: pre-wrap;      /* 줄바꿈을 자동으로 허용 */
+  word-break: break-word;     /* 긴 단어 자동 줄바꿈 */
+  overflow-wrap: break-word;  /* 추가: 줄바꿈 처리 */;
 }
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
